@@ -1,0 +1,12 @@
+name: SAFEnoteApp
+title: SAFEnoteApp
+username:
+account: trendlock
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 241952
+bundleId: 1105465
+url: https://trendlock.shinyapps.io/SAFEnoteApp/
+when: 1512008618.69634
+asMultiple: FALSE
+asStatic: FALSE
