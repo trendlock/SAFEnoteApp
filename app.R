@@ -33,7 +33,7 @@ ui <- fluidPage(
 
     br(),
     h1(class = "ui header", "SAFENote Simulator",
-       div(class = "sub header", "By TRENDLOCK")),
+       div(class = "sub header", "By TRENDLOCK", a(href = "https://github.com/trendlock/SAFEnoteApp", "Github repo"))),
     div(class = "ui divider"),
     div(class = "ui grid",
         div(class = "four wide column",
@@ -66,7 +66,8 @@ ui <- fluidPage(
             uisegment(
               div(class = "ui horizontal divider", uiicon("tag"), "All Values"),
               align = "center",
-              formattableOutput("inputs_tbl", width = "70%")
+              downloadButton("csv_all_vals"),
+              formattableOutput("inputs_tbl", width = "80%")
             )
 
         )),
@@ -141,15 +142,26 @@ server <- function(input, output) {
       list(name = "Total Shares on Issued post-raise",  val = Total.Shares.Post.Raise)
     )
 
+    
+    all_vals <- ls %>%
+      map( ~ enframe(.x[["val"]]) %>%
+             mutate(name = .x[["name"]],
+                    value = as.character(value))) %>%
+      bind_rows() %>%
+      `colnames<-`(c("What", "Info"))
+    
     output$inputs_tbl <-  renderFormattable({
-      ls %>%
-        map( ~ enframe(.x[["val"]]) %>%
-               mutate(name = .x[["name"]],
-                      value = as.character(value))) %>%
-        bind_rows() %>%
-        `colnames<-`(c("What", "Info")) %>%
-        formattable()
+        formattable(all_vals)
     })
+    
+    output$csv_all_vals <- downloadHandler(
+      filename <- function() {
+        paste('input-vals-tbl-', Sys.Date(), '.csv', sep='')
+      },
+      content = function(con) {
+        write_excel_csv(all_vals, con)
+      })
+    
 
 
     ##### Building basic df for New Investor  #####
@@ -182,7 +194,7 @@ server <- function(input, output) {
         paste('preraise-tbl-', Sys.Date(), '.csv', sep='')
       },
       content = function(con) {
-        write_excel_csv(drop_read_csv(preraise_table.), con)
+        write_excel_csv(preraise_table., con)
       })
     
     
@@ -200,7 +212,7 @@ server <- function(input, output) {
         paste('postraise-tbl-', Sys.Date(), '.csv', sep='')
       },
       content = function(con) {
-        write_excel_csv(drop_read_csv(postraise_table.), con)
+        write_excel_csv(postraise_table., con)
       })
 
     tidy_table <- bind_rows(preraise_table., postraise_table.)
