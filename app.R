@@ -7,8 +7,8 @@ library(shinycssloaders)
 library(formattable)
 
 
-devtools::install_github("rosseji/shiny.semantic@develop")
-devtools::install_github("trendlock/SAFEnote")
+# devtools::install_github("rosseji/shiny.semantic@develop")
+# devtools::install_github("trendlock/SAFEnote")
 
 library(shiny.semantic)
 library(SAFEnote)
@@ -105,7 +105,7 @@ server <- function(input, output) {
 
     Cap <- input$Cap * 1000000
     Existing.no.shareholders <- input$Existing.no.shareholders
-    Existing.no.shares.issued <- input$Existing.no.shares.issued %>% as.numeric()
+    Existing.no.shares.issued <- round(input$Existing.no.shares.issued %>% as.numeric())
     Pre.cash.valuation <- input$Pre.cash.valuation * 1000000
     New.Investment <-  input$New.Investment * 1000000
 
@@ -113,8 +113,10 @@ server <- function(input, output) {
     preraise_table <- lister(number = Existing.no.shareholders)
     preraise_table <- preraise_table %>%
       mutate(shares = round(Existing.no.shares.issued/Existing.no.shareholders),
-             percent = shares/Existing.no.shares.issued*100)
+             percent = round(shares/Existing.no.shares.issued*100, 2))
 
+    print(preraise_table)
+    
     #### A few more calcs #########
     price.per.share <- Pre.cash.valuation/Existing.no.shares.issued
     shares.issued <- round(New.Investment/price.per.share)
@@ -129,8 +131,8 @@ server <- function(input, output) {
 
       list(name = "Number of Existing Shareholders",  val = Existing.no.shareholders),
       list(name = "Fully-diluted number of shares pre-raise",  val = Existing.no.shares.issued),
-      list(name = "Pre-Cash Valuation",  val = Pre.cash.valuation),
-      list(name = "Valuation Cap",  val = Cap),
+      list(name = "Pre-Cash Valuation",  val = glue::glue("${Pre.cash.valuation/1000000}M")),
+      list(name = "Valuation Cap",  val = glue::glue("${Cap/1000000}M")),
       list(name = "New Investment Amount",  val = New.Investment),
       list(name = "Standard Price Per Share",  val = round(price.per.share, digits = 3)),
       list(name = "Number of Shares issue to new investor",  val = shares.issued),
@@ -179,7 +181,7 @@ server <- function(input, output) {
     postraise_table <- preraise_table %>%
       select(Shareholder, shares) %>%
       bind_rows(New.Investor, Westpac) %>%
-      mutate(percent = shares/Total.Shares.Post.Raise*100)
+      mutate(percent = round(shares/Total.Shares.Post.Raise*100, 2))
 
     ######  Making the data tidy #########
     preraise_table. <- preraise_table %>%
